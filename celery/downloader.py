@@ -77,6 +77,8 @@ def mark_db_as_downloaded(request_data):
         request_data.get('id')
     ))
     conn.commit()
+    del FILE_NAMES[:]
+    del FILE_SIZES[:]
     cur.close()
     conn.close()
 
