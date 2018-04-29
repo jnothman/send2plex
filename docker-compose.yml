@@ -1,0 +1,32 @@
+version: '3.2'
+services:
+  flask:
+    build: ./apiserver
+    ports:
+      - '5000:5000'
+    depends_on:
+      - postgres
+      - rabbit
+      - worker
+    environment:
+      - DB_URL=${DB_URL}
+      - BROKER_URL=${BROKER_URL}
+  worker:
+    build: ./celery
+    depends_on:
+      - postgres
+      - rabbit
+    environment:
+      - DB_URL=${DB_URL}
+      - DL_DIR=${DL_DIR}
+      - BROKER_URL=${BROKER_URL}
+    volumes:
+      - type: bind
+        source: ${SOURCE_DIR}
+        target: ${DL_DIR}
+  rabbit:
+    image: rabbitmq:latest
+  postgres:
+    image: postgres:10-alpine
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
