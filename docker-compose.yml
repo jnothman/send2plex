@@ -30,3 +30,34 @@ services:
     image: postgres:10-alpine
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:${ES_VERSION}
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    networks:
+      - esnet
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:${ES_VERSION}
+    depends_on:
+      - elasticsearch
+    networks:
+      - esnet
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - type: bind
+        source: ./elastic_stack/filebeat.yml
+        target: /usr/share/filebeat/filebeat.yml
+      - type: bind
+        source: ${LOG_PATH}
+        target: /var/lib/docker/containers
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:${ES_VERSION}
+    ports: 
+      - '5601:5601'
+    depends_on:
+      - elasticsearch
+    networks:
+      - esnet
+networks: 
+  esnet:
