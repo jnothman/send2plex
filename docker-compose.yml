@@ -37,7 +37,10 @@ services:
     networks:
       - esnet
   filebeat:
-    image: docker.elastic.co/beats/filebeat:${ES_VERSION}
+    build:
+      context: ./elastic_stack
+      args:
+        - ES_VERSION=${ES_VERSION}
     depends_on:
       - elasticsearch
     networks:
@@ -45,9 +48,6 @@ services:
     environment:
       - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
     volumes:
-      - type: bind
-        source: ./elastic_stack/filebeat.yml
-        target: /usr/share/filebeat/filebeat.yml
       - type: bind
         source: ${LOG_PATH}
         target: /var/lib/docker/containers
