@@ -47,6 +47,7 @@ class RequestSchema(MA.ModelSchema):
 
 @retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
 def create_all(database):
+    """Function that wraps db initializer"""
     try:
         database.create_all()
     except exc.OperationalError as error:
