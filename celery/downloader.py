@@ -83,20 +83,22 @@ def mark_db_as_downloaded(request_data):
     conn.close()
 
 
-def download_video(request_data):
+def download_video(request_data, persist_to_db=True):
     """Core function for downloading requested videos"""
     ydl_opts = {
-        'format': 'bestvideo[height>720]+bestaudio/bestvideo[height=720]+bestaudio/best',
+        'format': 'bestvideo[height>720][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height=720][ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]',
         'progress_hooks': [progress_hook],
         'outtmpl': '{}/%(uploader)s/%(title)s.%(ext)s'.format(os.environ.get('DL_DIR'))
     }
     with youtube_dl.YoutubeDL(ydl_opts) as client:
-        metadata = client.extract_info(
-            url=request_data.get('url'), download=False)
-        update_db_metadata(request_data, metadata)
+        if persist_to_db: 
+            metadata = client.extract_info(
+                url=request_data.get('url'), download=False)
+            update_db_metadata(request_data, metadata)
         client.download([request_data.get('url')])
-        mark_db_as_downloaded(request_data)
+        if persist_to_db: 
+            mark_db_as_downloaded(request_data)
 
 
 if __name__ == '__main__':
-    download_video({'url': 'https://www.youtube.com/watch?v=u9Mv98Gr5pY'})
+    download_video({'url': 'https://www.youtube.com/watch?v=u9Mv98Gr5pY'}, False)
