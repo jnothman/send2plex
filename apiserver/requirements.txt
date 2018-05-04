@@ -32,3 +32,4 @@ vine==1.1.4
 Werkzeug==0.14.1
 wrapt==1.10.11
 youtube-dl==2018.4.25
+retrying==1.3.3

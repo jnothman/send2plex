@@ -6,6 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from sqlalchemy import exc, dialects
 from worker import CELERY
+from retrying import retry
 
 APP = Flask(__name__)
 APP.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_URL')
@@ -44,7 +45,16 @@ class RequestSchema(MA.ModelSchema):
         model = Request
 
 
-DB.create_all()
+@retry(wait_exponential_multiplier=1000, wait_exponential_max=10000)
+def create_all(database):
+    try:
+        database.create_all()
+    except exc.OperationalError as error:
+        print "DB not ready, waiting before retry..."
+        raise error
+
+
+create_all(DB)
 
 
 @APP.route('/')
