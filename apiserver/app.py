@@ -5,8 +5,8 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from sqlalchemy import exc, dialects
-from worker import CELERY
 from retrying import retry
+from worker import CELERY
 
 APP = Flask(__name__)
 APP.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_URL')
