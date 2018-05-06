@@ -1,6 +1,7 @@
 """Send2Plex API Server: Provides a RESTful API for persisting requests for the Send2Plex service"""
 import datetime
 import os
+import validators
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
@@ -79,9 +80,15 @@ def requests():
         return jsonify({'requests': all_requests_serialized.data})
     elif request.method == 'POST':
         req = request.get_json()
-        new_request = Request(url=req.get('url'))
+        new_request_url = Request(url=req.get('url'))
+        if not validators.url(new_request_url):
+            response = {
+                'success': False,
+                'message': 'URL provided is not valid'
+            }
+            return jsonify(response)
         try:
-            DB.session.add(new_request)
+            DB.session.add(new_request_url)
             DB.session.commit()
         except exc.SQLAlchemyError as error:
             response = {
@@ -90,7 +97,7 @@ def requests():
                 'error': error.message
             }
             return jsonify(response)
-        request_dict = REQUEST_SCHEMA.dump(new_request).data
+        request_dict = REQUEST_SCHEMA.dump(new_request_url).data
         CELERY.send_task('tasks.download', args=[request_dict])
         return jsonify({'success': True})
 
