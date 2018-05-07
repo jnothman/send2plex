@@ -80,13 +80,14 @@ def requests():
         return jsonify({'requests': all_requests_serialized.data})
     elif request.method == 'POST':
         req = request.get_json()
-        new_request_url = Request(url=req.get('url'))
-        if not validators.url(new_request_url):
+        url = req.get('url')
+        if not validators.url(url):
             response = {
                 'success': False,
                 'message': 'URL provided is not valid'
             }
             return jsonify(response)
+        new_request_url = Request(url=url)
         try:
             DB.session.add(new_request_url)
             DB.session.commit()
@@ -99,7 +100,11 @@ def requests():
             return jsonify(response)
         request_dict = REQUEST_SCHEMA.dump(new_request_url).data
         CELERY.send_task('tasks.download', args=[request_dict])
-        return jsonify({'success': True})
+        response = {
+            'success': True,
+            'message': 'Request submitted'
+        }
+        return jsonify(response)
 
 
 if __name__ == '__main__':
